@@ -1,4 +1,5 @@
 Vue.js 코딩 공작소
 
-Chapter
+Chapter2
+
 WebStore 프로젝트 예제
