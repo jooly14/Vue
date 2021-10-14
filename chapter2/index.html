@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js 애완용품샵</title>
+   
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+    <!-- local CSS -->
+    <link rel="stylesheet" type="text/css" href="assets/css/app.css" />
+    <link rel="stylesheet" 
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" 
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" 
+    crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" 
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" 
+    crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" 
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" 
+    crossorigin="anonymous"></script>
+    
+</head>
+<body>
+    <div id="app">
+        
+        <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+            <h5 class="my-0 mr-md-auto font-weight-normal">{{sitename}}</h5>
+            
+            <div class="my-1 my-md-0 mr-md-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
+                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    </svg>
+                {{cartItemCount}}
+            </div>
+        </div>
+        <main>
+            <div class="row product">
+                <div class="col-md-4">
+                    <figure>
+                        <!-- v-bind:src는 :src로 축약해서 사용가능 -->
+                        <img v-bind:src="product.image">
+                    </figure>
+                </div>
+                <div class="col-md-6">
+                    <h1 v-text="product.title"></h1>
+                    <!-- html코드를 사용하기 위해서는 v-html을 사용. xss문제가 있을 수 있다. -->
+                    <p v-html="product.description"></p>
+                    <!-- 필터를 사용하기 위해서는 {{}}형식으로 필터를 적용할수 있다.
+                        v-text에서는 필터 적용 불가.
+                    -->
+                    <p class="price">{{product.price | formatPrice}}</p>
+                    <button class="btn btn-primary btn-lg" 
+                    v-if="canAddToCart"
+                    v-on:click="addToCart">장바구니 담기</button>
+                    <button disabled="true" class="btn btn-primary btn-lg" 
+                    v-else="canAddToCart">장바구니 담기</button>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+    <span style="font-size:50px; color:pink;" class="glyphicon glyphicon-music"></span>
+<span style="font-size:50px; color:cecece;" class="glyphicon glyphicon-sunglasses"></span>
+<i style="font-size:50px;" class="glyphicon glyphicon-phone"></i>
+    <script type="text/javascript">
+        Vue.config.devtools = true;
+
+        var APP_LOG_LIFECYCLE_EVENTS = false; //라이프 사이클 훅 메서드 켜고 끄는 변수
+        var webstore = new Vue({
+            el : '#app',
+            data : {
+                sitename : 'Vue.js 애완용품샵',
+                product :{
+                    id : 1001,
+                    title : "고양이 사료, 25파운드",
+                    description : "당신의 고양이를 위한 <em>거부할 수 없는 </em>,"+
+                    "유기농 25파운드 사료입니다.",
+                    price : 2000,
+                    image : "assets/images/product-fullsize.png",
+                    availableInventory : 5
+                },
+                cart : []
+            },
+            filters:{
+                // 필터 메서드 생성
+                formatPrice : function(price){
+                    if(!parseInt(price))
+                        return "";
+                        if(price > 99999){
+                            var priceString = (price /100).toFixed(2);
+                            var priceArray = priceString.split("").reverse();
+                            var index = 3;
+                            while(priceArray.length > index +3 ){
+                                priceArray.splice(index +3, 0, ",");
+                                index += 4;
+                            }
+                            return "$" + priceArray.reverse().join("");
+                        }else{
+                            return "$" + (price/100).toFixed(2);
+                        }
+                }
+            },
+            computed :{
+                cartItemCount : function(){
+                    return this.cart.length || 0;
+                },
+                canAddToCart: function(){
+                    return this.product.availableInventory > this.cartItemCount;
+                }
+            },
+            methods : {
+                addToCart: function(){
+                    this.cart.push(this.product.id);
+                }
+            },
+            beforeCreate: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("beforeCreate");
+            },
+            created: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("created");
+            },
+            beforeMount: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("beforeMount");
+            },
+            mounted: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("mounted");
+            },
+            beforeUpdate: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("beforeUpdate");
+            },
+            updated: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("updated");
+            },
+            beforeDestroy: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("beforeDestroy");
+            },
+            destroyed: function(){
+                if(APP_LOG_LIFECYCLE_EVENTS)
+                    console.log("destroyed");
+            }
+        
+        });
+    </script>
+</body>
+</html>
